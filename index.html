@@ -731,14 +731,20 @@ function updateConnectivity() {
         b.wobbleAmp = 1.5 + Math.random() * 2.5;
     });
     let dirX = Math.sign(pushX), dirY = Math.sign(pushY);
-    let ordered = freed.slice().sort((a2, b2) => (b2.x * dirX + b2.y * dirY) - (a2.x * dirX + a2.y * dirY));
+    let allMoving = grid.filter(b => b.isMoving);
+    let ordered = allMoving.slice().sort((a2, b2) => (b2.x * dirX + b2.y * dirY) - (a2.x * dirX + a2.y * dirY));
     let resolvedLandings = new Set();
     ordered.forEach(b => {
-        let landing = predictLanding(b, pushX, pushY, resolvedLandings, connected);
+        let bPushX = b.fallDx > 0 ? bSize : (b.fallDx < 0 ? -bSize : 0);
+        let bPushY = b.fallDy > 0 ? bSize : (b.fallDy < 0 ? -bSize : 0);
+        let origin = { x: Math.round(b.x / bSize) * bSize, y: Math.round(b.y / bSize) * bSize };
+        let landing = predictLanding(origin, bPushX, bPushY, resolvedLandings, connected);
         b.willCollide = !!landing;
         if (landing) {
             b.landingX = landing.x; b.landingY = landing.y;
             resolvedLandings.add(landing.x + '_' + landing.y);
+        } else {
+            b.landingX = undefined; b.landingY = undefined;
         }
     });
     if (grid.filter(b => !b.isMoving).length <= 1 && !isStageClearPending) {
