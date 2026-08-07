@@ -173,6 +173,12 @@ canvas {
 .confirm-buttons { display: flex; gap: 14px; justify-content: center; }
 .confirm-yes { background: linear-gradient(135deg, #ff6b6b, #e63946); color: #fff; border: none; border-radius: 10px; padding: 12px 22px; font-weight: 700; font-size: clamp(14px,4vw,15px); cursor: pointer; }
 .confirm-no { background: transparent; border: 2px solid #00f2fe; color: #00f2fe; border-radius: 10px; padding: 10px 20px; font-weight: 700; font-size: clamp(14px,4vw,15px); cursor: pointer; }
+.level-test-panel { position: fixed; top: 50%; left: 4px; transform: translateY(-50%); display: flex; flex-direction: column; gap: 4px; z-index: 500; }
+.level-test-panel button {
+    width: 28px; height: 28px; font-size: 12px; font-weight: 700; color: #fff;
+    background: rgba(0,242,254,0.12); border: 1px solid rgba(0,242,254,0.5); border-radius: 6px; cursor: pointer;
+}
+.level-test-panel button:active { background: rgba(0,242,254,0.35); }
 .canvas-wrap { position: relative; }
 #startLogo { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; padding: 28px 0 42px; box-sizing: border-box; pointer-events: none; opacity: 1; visibility: visible; transition: opacity 0.35s ease, visibility 0.35s ease; overflow: visible; }
 #startLogo.is-hidden { opacity: 0; visibility: hidden; }
@@ -223,6 +229,18 @@ canvas {
 </style>
 </head>
 <body>
+<div class="level-test-panel">
+    <button onclick="jumpToLevel(1)">1</button>
+    <button onclick="jumpToLevel(2)">2</button>
+    <button onclick="jumpToLevel(3)">3</button>
+    <button onclick="jumpToLevel(4)">4</button>
+    <button onclick="jumpToLevel(5)">5</button>
+    <button onclick="jumpToLevel(6)">6</button>
+    <button onclick="jumpToLevel(7)">7</button>
+    <button onclick="jumpToLevel(8)">8</button>
+    <button onclick="jumpToLevel(9)">9</button>
+    <button onclick="jumpToLevel(10)">10</button>
+</div>
 <div class="ui-panel">
     <div class="stat-block" id="scoreStat">
         <span class="stat-label">Score</span>
@@ -822,6 +840,22 @@ function triggerGameOver() {
     btn.innerText = "Start"; btn.style.background = "linear-gradient(135deg, #00b894 0%, #00cec9 100%)";
 }
 function resetAndRestartGame() { gameStarted = false; currentLevel = 1; startGameEngine(); }
+function jumpToLevel(n) {
+    if (stageClearTimer) clearTimeout(stageClearTimer);
+    stageClearTimer = null; isStageClearPending = false;
+    stopWildHum(); stopViralHum();
+    document.getElementById('confirmOverlay').style.display = 'none';
+    isPaused = false;
+    currentLevel = n;
+    score = 0; totalBursts = 0; speedMultiplier = 1.0; baseSpeed = (difficultyMode === 'expert') ? 0.8 : 0.5;
+    grid = []; particles = [];
+    isGameOver = false; isGameWon = false; gameStarted = true; missedBlocks = 0;
+    refreshDiffBtnEnabled();
+    const btn = document.getElementById('actionBtn');
+    btn.innerText = "Restart"; btn.style.background = "linear-gradient(135deg, #e67e22 0%, #f39c12 100%)";
+    updateUI(); generateGridForLevel(currentLevel); pickNextColor(); spawnFalling();
+    getAudioCtx(); startMusic(currentLevel);
+}
 window.addEventListener('keydown', (e) => {
     if(!gameStarted || isGameOver || isGameWon) return;
     if(e.key === 'ArrowUp' || e.key === '8' || e.code === 'Numpad8') moveBlock('up');
